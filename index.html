@@ -2,46 +2,180 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Control de Equipos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AssetFlow | Gestión de Equipos</title>
+  <!-- Fuente moderna Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Iconos FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-<h1>Control de Equipos</h1>
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="logo">
+      <i class="fa-solid fa-microchip"></i>
+      <span>AssetFlow</span>
+    </div>
+    <nav class="menu">
+      <a href="#" class="active" onclick="mostrarSeccion('dashboard')"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+      <a href="#" onclick="mostrarSeccion('registrar')"><i class="fa-solid fa-plus-circle"></i> Registrar Equipo</a>
+      <a href="#" onclick="mostrarSeccion('asignar')"><i class="fa-solid fa-user-check"></i> Asignar</a>
+      <a href="#" onclick="mostrarSeccion('devolver')"><i class="fa-solid fa-rotate-left"></i> Devolver</a>
+      <a href="#" onclick="mostrarSeccion('inventario')"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a>
+    </nav>
+    <div class="sidebar-footer">
+      <p>v1.0.0</p>
+    </div>
+  </aside>
 
-<h2>Registrar Equipo</h2>
-<input type="text" id="codigo" placeholder="Código">
-<input type="text" id="tipo" placeholder="Tipo">
-<input type="text" id="marca" placeholder="Marca">
-<input type="text" id="modelo" placeholder="Modelo">
-<button onclick="registrarEquipo()">Registrar</button>
+  <!-- ============ CONTENIDO PRINCIPAL ============ -->
+  <main class="main-content">
+    
+    <!-- HEADER -->
+    <header class="topbar">
+      <h1 id="tituloSeccion">Dashboard</h1>
+      <div class="user-info">
+        <i class="fa-solid fa-bell"></i>
+        <div class="avatar">KC</div>
+        <span>Kevin Canchari</span>
+      </div>
+    </header>
 
-<h2>Asignar Equipo</h2>
-<input type="text" id="codigoAsignar" placeholder="Código">
-<input type="text" id="trabajador" placeholder="Trabajador">
-<button onclick="asignarEquipo()">Asignar</button>
+    <!-- MENSAJES GLOBALES -->
+    <div id="mensaje"></div>
 
-<h2>Devolver Equipo</h2>
-<input type="text" id="codigoDevolver" placeholder="Código">
-<button onclick="devolverEquipo()">Devolver</button>
+    <!-- ============ SECCIÓN: DASHBOARD ============ -->
+    <section id="seccion-dashboard" class="seccion activa">
+      <div class="dashboard-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fa-solid fa-laptop"></i></div>
+          <div class="stat-info">
+            <h3>Total Equipos</h3>
+            <p id="totalEquipos">0</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fa-solid fa-check-circle"></i></div>
+          <div class="stat-info">
+            <h3>Disponibles</h3>
+            <p id="totalDisponibles" class="disponible">0</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fa-solid fa-user-clock"></i></div>
+          <div class="stat-info">
+            <h3>Asignados</h3>
+            <p id="totalAsignados" class="asignado">0</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Actividad reciente o resumen -->
+      <div class="card-panel">
+        <h2><i class="fa-solid fa-clock-rotate-left"></i> Resumen del Sistema</h2>
+        <p style="color: var(--text-muted); margin-top: 10px;">Bienvenido al panel de control. Utiliza el menú lateral para gestionar tus equipos.</p>
+      </div>
+    </section>
 
-<h2>Lista de Equipos</h2>
-<button onclick="mostrarEquipos()">Mostrar</button>
+    <!-- ============ SECCIÓN: REGISTRAR ============ -->
+    <section id="seccion-registrar" class="seccion">
+      <div class="card-panel form-panel">
+        <h2><i class="fa-solid fa-plus-circle"></i> Registrar Nuevo Equipo</h2>
+        <div class="form-grid">
+          <div class="input-group">
+            <label>Código (Ej: LAP-001)</label>
+            <input type="text" id="codigo" placeholder="LAP-001">
+          </div>
+          <div class="input-group">
+            <label>Tipo</label>
+            <input type="text" id="tipo" placeholder="Laptop, Monitor, etc.">
+          </div>
+          <div class="input-group">
+            <label>Marca</label>
+            <input type="text" id="marca" placeholder="HP, Dell, Lenovo...">
+          </div>
+          <div class="input-group">
+            <label>Modelo</label>
+            <input type="text" id="modelo" placeholder="Pavilion, ThinkPad...">
+          </div>
+        </div>
+        <button class="btn-primary" onclick="registrarEquipo()"><i class="fa-solid fa-save"></i> Registrar Equipo</button>
+      </div>
+    </section>
 
-<table border="1">
-  <thead>
-    <tr>
-      <th>Código</th>
-      <th>Tipo</th>
-      <th>Marca</th>
-      <th>Modelo</th>
-      <th>Estado</th>
-      <th>Trabajador</th>
-    </tr>
-  </thead>
-  <tbody id="tabla"></tbody>
-</table>
+    <!-- ============ SECCIÓN: ASIGNAR ============ -->
+    <section id="seccion-asignar" class="seccion">
+      <div class="card-panel form-panel">
+        <h2><i class="fa-solid fa-user-check"></i> Asignar Equipo a Trabajador</h2>
+        <div class="form-grid">
+          <div class="input-group">
+            <label>Código del Equipo</label>
+            <input type="text" id="codigoAsignar" placeholder="LAP-001">
+          </div>
+          <div class="input-group">
+            <label>Nombre del Trabajador</label>
+            <input type="text" id="trabajador" placeholder="Juan Pérez">
+          </div>
+        </div>
+        <button class="btn-primary" onclick="asignarEquipo()"><i class="fa-solid fa-hand-holding"></i> Asignar Equipo</button>
+      </div>
+    </section>
 
-<script src="js/app.js"></script>
+    <!-- ============ SECCIÓN: DEVOLVER ============ -->
+    <section id="seccion-devolver" class="seccion">
+      <div class="card-panel form-panel">
+        <h2><i class="fa-solid fa-rotate-left"></i> Devolver Equipo</h2>
+        <div class="form-grid">
+          <div class="input-group">
+            <label>Código del Equipo</label>
+            <input type="text" id="codigoDevolver" placeholder="LAP-001">
+          </div>
+        </div>
+        <button class="btn-primary" onclick="devolverEquipo()"><i class="fa-solid fa-undo"></i> Registrar Devolución</button>
+      </div>
+    </section>
+
+    <!-- ============ SECCIÓN: INVENTARIO (TABLA) ============ -->
+    <section id="seccion-inventario" class="seccion">
+      <div class="card-panel">
+        <div class="table-header">
+          <h2><i class="fa-solid fa-boxes-stacked"></i> Inventario de Equipos</h2>
+          <div class="buscador">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="buscar" placeholder="Buscar por código...">
+            <select id="filtro">
+              <option value="todos">Todos</option>
+              <option value="disponible">Disponibles</option>
+              <option value="asignado">Asignados</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Tipo</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Estado</th>
+                <th>Trabajador</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="js/app.js"></script>
 </body>
 </html>
