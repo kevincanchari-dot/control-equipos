@@ -1,0 +1,142 @@
+/* ============================================================
+   ESTILOS GENERALES
+   ============================================================ */
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #1e1e2f;
+  color: white;
+  padding: 20px;
+  margin: 0;
+}
+
+h1 {
+  text-align: center;
+  color: #00d4ff;
+  margin-bottom: 30px;
+}
+
+/* ============================================================
+   CONTENEDOR DE LAS 3 TARJETAS
+   ============================================================ */
+.container {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: #2c2c3e;
+  padding: 20px;
+  border-radius: 10px;
+  width: 260px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.card h2 {
+  font-size: 1.1rem;
+  margin-top: 0;
+  color: #00d4ff;
+}
+
+/* ============================================================
+   INPUTS Y SELECTS
+   ============================================================ */
+input, select {
+  width: 100%;
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+  box-sizing: border-box;
+  font-size: 0.9rem;
+}
+
+/* ============================================================
+   BOTONES
+   ============================================================ */
+button {
+  width: 100%;
+  padding: 9px;
+  background: #00b894;
+  border: none;
+  color: white;
+  cursor: pointer;
+  margin-top: 5px;
+  border-radius: 5px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: #019875;
+}
+
+/* ============================================================
+   BUSCADOR Y FILTRO
+   ============================================================ */
+.buscador {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 0 auto 20px;
+  max-width: 700px;
+}
+
+.buscador input,
+.buscador select {
+  margin: 0;
+}
+
+/* ============================================================
+   MENSAJES
+   ============================================================ */
+#mensaje {
+  text-align: center;
+  margin: 10px 0;
+  font-weight: bold;
+  font-size: 1rem;
+  min-height: 22px;
+}
+
+/* ============================================================
+   TABLA
+   ============================================================ */
+table {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  border-collapse: collapse;
+  background: #2c2c3e;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th {
+  background: #00b894;
+  padding: 12px;
+  text-align: center;
+}
+
+td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #3a3a55;
+}
+
+tr:nth-child(even) {
+  background: #26263a;
+}
+
+/* Estados con color */
+.disponible {
+  color: #00ff9d;
+  font-weight: bold;
+}
+
+.asignado {
+  color: #ff7675;
+  font-weight: bold;
+}
