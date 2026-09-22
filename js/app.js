@@ -1,236 +1,236 @@
-/* ============================================================
-   CONTROL DE EQUIPOS — AssetFlow
-   Lógica + Navegación Sidebar
-   ============================================================ */
+"use strict";
 
 const CLAVE = "equiposEmpresa";
+const CODIGO_RE = /^[A-Z]{2,4}-\d{3}$/;
+const TEXTO_RE = /^[A-Za-zÁÉÍÓÚÜáéíóúüÑñ][A-Za-zÁÉÍÓÚÜáéíóúüÑñ0-9 .,'()/-]*$/;
 
-// Referencias
-const codigoInput     = document.getElementById("codigo");
-const tipoInput       = document.getElementById("tipo");
-const marcaInput      = document.getElementById("marca");
-const modeloInput     = document.getElementById("modelo");
-const codigoAsignar   = document.getElementById("codigoAsignar");
-const trabajadorInput = document.getElementById("trabajador");
-const codigoDevolver  = document.getElementById("codigoDevolver");
-const buscarInput     = document.getElementById("buscar");
-const filtroSelect    = document.getElementById("filtro");
-const tabla           = document.getElementById("tabla");
-const mensajeDiv      = document.getElementById("mensaje");
-const tituloSeccion   = document.getElementById("tituloSeccion");
-
-/* ============================================================
-   NAVEGACIÓN ENTRE SECCIONES (Sidebar)
-   ============================================================ */
-function mostrarSeccion(idSeccion) {
-  // Ocultar todas las secciones
-  document.querySelectorAll('.seccion').forEach(sec => sec.classList.remove('activa'));
-  // Mostrar la seleccionada
-  document.getElementById('seccion-' + idSeccion).classList.add('activa');
-  
-  // Actualizar título del topbar
-  const titulos = {
-    'dashboard': 'Dashboard',
-    'registrar': 'Registrar Equipo',
-    'asignar': 'Asignar Equipo',
-    'devolver': 'Devolver Equipo',
-    'inventario': 'Inventario'
+document.addEventListener("DOMContentLoaded", () => {
+  const elementos = {
+    codigo: document.getElementById("codigo"),
+    tipo: document.getElementById("tipo"),
+    marca: document.getElementById("marca"),
+    modelo: document.getElementById("modelo"),
+    codigoAsignar: document.getElementById("codigoAsignar"),
+    trabajador: document.getElementById("trabajador"),
+    codigoDevolver: document.getElementById("codigoDevolver"),
+    buscar: document.getElementById("buscar"),
+    filtro: document.getElementById("filtro"),
+    tabla: document.getElementById("tabla"),
+    mensaje: document.getElementById("mensaje"),
+    titulo: document.getElementById("tituloSeccion"),
+    total: document.getElementById("totalEquipos"),
+    disponibles: document.getElementById("totalDisponibles"),
+    asignados: document.getElementById("totalAsignados"),
   };
-  tituloSeccion.innerText = titulos[idSeccion] || 'Dashboard';
 
-  // Actualizar menú activo
-  document.querySelectorAll('.menu a').forEach(a => a.classList.remove('active'));
-  event.target.closest('a').classList.add('active');
-  
-  // Si entramos a inventario, refrescar tabla
-  if (idSeccion === 'inventario') {
-    mostrarEquipos();
-  }
-}
+  const titulos = {
+    dashboard: "Dashboard",
+    registrar: "Registrar equipo",
+    asignar: "Asignar equipo",
+    devolver: "Devolver equipo",
+    inventario: "Inventario",
+  };
+  let temporizadorMensaje;
 
-/* ============================================================
-   LOCALSTORAGE
-   ============================================================ */
-function obtenerEquipos() {
-  try {
-    return JSON.parse(localStorage.getItem(CLAVE)) || [];
-  } catch (e) {
-    return [];
-  }
-}
-
-function guardarEquipos(equipos) {
-  localStorage.setItem(CLAVE, JSON.stringify(equipos));
-}
-
-/* ============================================================
-   MENSAJES
-   ============================================================ */
-function mostrarMensaje(texto, color) {
-  mensajeDiv.innerText = texto;
-  mensajeDiv.style.color = color;
-  mensajeDiv.style.background = color + "22";
-  mensajeDiv.style.borderLeft = "4px solid " + color;
-
-  // Alerta para errores (opcional, quitar si molesta)
-  // if (color === "#ef4444") alert(texto);
-
-  setTimeout(() => {
-    mensajeDiv.innerText = "";
-    mensajeDiv.style.background = "transparent";
-    mensajeDiv.style.borderLeft = "none";
-  }, 3000);
-}
-
-/* ============================================================
-   VALIDACIONES
-   ============================================================ */
-const esTexto = (valor) => /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(valor);
-const esCodigo = (valor) => /^[A-Z]{2,4}-\d{3}$/.test(valor);
-
-/* ============================================================
-   REGISTRAR EQUIPO
-   ============================================================ */
-function registrarEquipo() {
-  const codigo = codigoInput.value.trim().toUpperCase();
-  const tipo   = tipoInput.value.trim();
-  const marca  = marcaInput.value.trim();
-  const modelo = modeloInput.value.trim();
-
-  if (!codigo || !tipo || !marca || !modelo) {
-    mostrarMensaje("❌ Todos los campos son obligatorios", "#ef4444");
-    return;
+  function obtenerEquipos() {
+    try {
+      const datos = JSON.parse(localStorage.getItem(CLAVE) || "[]");
+      return Array.isArray(datos) ? datos : [];
+    } catch {
+      return [];
+    }
   }
 
-  if (!esCodigo(codigo)) {
-    mostrarMensaje("❌ Código inválido. Formato: LAP-001", "#ef4444");
-    return;
+  function guardarEquipos(equipos) {
+    try {
+      localStorage.setItem(CLAVE, JSON.stringify(equipos));
+      return true;
+    } catch {
+      mostrarMensaje("No se pudo guardar la información en este navegador.", "error");
+      return false;
+    }
   }
 
-  if (!esTexto(tipo)) { mostrarMensaje("❌ Tipo: solo texto", "#ef4444"); return; }
-  if (!esTexto(marca)) { mostrarMensaje("❌ Marca: solo texto", "#ef4444"); return; }
+  function mostrarMensaje(texto, tipo = "exito") {
+    clearTimeout(temporizadorMensaje);
+    elementos.mensaje.textContent = texto;
+    elementos.mensaje.className = `visible ${tipo}`;
+    elementos.mensaje.style.color = tipo === "error" ? "#fecaca" : "#bbf7d0";
+    elementos.mensaje.style.background = tipo === "error" ? "#451a1a" : "#064e3b";
+    elementos.mensaje.style.borderLeftColor = tipo === "error" ? "#ef4444" : "#10b981";
 
-  const equipos = obtenerEquipos();
-  if (equipos.some(eq => eq.codigo === codigo)) {
-    mostrarMensaje("❌ Ya existe un equipo con ese código", "#ef4444");
-    return;
+    temporizadorMensaje = window.setTimeout(() => {
+      elementos.mensaje.className = "";
+    }, 3500);
   }
 
-  equipos.push({ codigo, tipo, marca, modelo, estado: "disponible", trabajador: "" });
-  guardarEquipos(equipos);
-  mostrarMensaje("✅ Equipo registrado correctamente", "#10b981");
-
-  codigoInput.value = tipoInput.value = marcaInput.value = modeloInput.value = "";
-  mostrarEquipos();
-  mostrarSeccion('inventario'); // Redirigir al inventario tras registrar
-}
-
-/* ============================================================
-   ASIGNAR EQUIPO
-   ============================================================ */
-function asignarEquipo() {
-  const codigo     = codigoAsignar.value.trim().toUpperCase();
-  const trabajador = trabajadorInput.value.trim();
-
-  if (!codigo || !trabajador) { mostrarMensaje("❌ Datos incompletos", "#ef4444"); return; }
-  if (!esTexto(trabajador)) { mostrarMensaje("❌ Trabajador: solo texto", "#ef4444"); return; }
-
-  const equipos = obtenerEquipos();
-  const equipo = equipos.find(eq => eq.codigo === codigo);
-
-  if (!equipo) { mostrarMensaje("❌ No existe un equipo con ese código", "#ef4444"); return; }
-  if (equipo.estado === "asignado") {
-    mostrarMensaje(`❌ Ya está asignado a ${equipo.trabajador}`, "#ef4444");
-    return;
+  function normalizarCodigo(valor) {
+    return valor.trim().toUpperCase();
   }
 
-  equipo.estado = "asignado";
-  equipo.trabajador = trabajador;
-  guardarEquipos(equipos);
-  mostrarMensaje(`✅ Asignado a ${trabajador}`, "#10b981");
+  function esTextoValido(valor) {
+    return TEXTO_RE.test(valor.trim());
+  }
 
-  codigoAsignar.value = trabajadorInput.value = "";
-  mostrarEquipos();
-  mostrarSeccion('inventario');
-}
+  function mostrarSeccion(idSeccion) {
+    const seccion = document.getElementById(`seccion-${idSeccion}`);
+    if (!seccion || !titulos[idSeccion]) return;
 
-/* ============================================================
-   DEVOLVER EQUIPO
-   ============================================================ */
-function devolverEquipo() {
-  const codigo = codigoDevolver.value.trim().toUpperCase();
-  if (!codigo) { mostrarMensaje("❌ Ingresa el código", "#ef4444"); return; }
+    document.querySelectorAll(".seccion").forEach((item) => {
+      const activa = item === seccion;
+      item.hidden = !activa;
+      item.classList.toggle("activa", activa);
+    });
+    elementos.titulo.textContent = titulos[idSeccion];
 
-  const equipos = obtenerEquipos();
-  const equipo = equipos.find(eq => eq.codigo === codigo);
+    document.querySelectorAll(".menu button").forEach((boton) => {
+      const activo = boton.dataset.seccion === idSeccion;
+      boton.classList.toggle("active", activo);
+      boton.toggleAttribute("aria-current", activo);
+    });
 
-  if (!equipo) { mostrarMensaje("❌ Equipo no encontrado", "#ef4444"); return; }
-  if (equipo.estado !== "asignado") { mostrarMensaje("❌ Ese equipo no está asignado", "#ef4444"); return; }
+    if (idSeccion === "inventario") mostrarEquipos();
+  }
 
-  equipo.estado = "disponible";
-  equipo.trabajador = "";
-  guardarEquipos(equipos);
-  mostrarMensaje("✅ Equipo devuelto correctamente", "#10b981");
+  function crearCelda(texto) {
+    const celda = document.createElement("td");
+    celda.textContent = texto || "—";
+    return celda;
+  }
 
-  codigoDevolver.value = "";
-  mostrarEquipos();
-  mostrarSeccion('inventario');
-}
+  function mostrarEquipos() {
+    const equipos = obtenerEquipos();
+    const filtro = elementos.filtro.value;
+    const busqueda = elementos.buscar.value.trim().toLocaleLowerCase("es");
 
-/* ============================================================
-   ELIMINAR EQUIPO
-   ============================================================ */
-function eliminarEquipo(codigo) {
-  if (!confirm(`¿Eliminar el equipo ${codigo}?`)) return;
-  let equipos = obtenerEquipos().filter(eq => eq.codigo !== codigo);
-  guardarEquipos(equipos);
-  mostrarMensaje("🗑️ Equipo eliminado", "#ef4444");
-  mostrarEquipos();
-}
+    elementos.total.textContent = equipos.length;
+    elementos.disponibles.textContent = equipos.filter((equipo) => equipo.estado === "disponible").length;
+    elementos.asignados.textContent = equipos.filter((equipo) => equipo.estado === "asignado").length;
+    elementos.tabla.replaceChildren();
 
-/* ============================================================
-   MOSTRAR EQUIPOS (Tabla + Contadores)
-   ============================================================ */
-function mostrarEquipos() {
-  const equipos = obtenerEquipos();
-  const filtro = filtroSelect.value;
-  const busqueda = buscarInput.value.toLowerCase().trim();
+    const filtrados = equipos.filter((equipo) => {
+      if (filtro !== "todos" && equipo.estado !== filtro) return false;
+      const contenido = [equipo.codigo, equipo.tipo, equipo.marca, equipo.modelo, equipo.trabajador]
+        .filter(Boolean)
+        .join(" ")
+        .toLocaleLowerCase("es");
+      return !busqueda || contenido.includes(busqueda);
+    });
 
-  // Contadores Dashboard
-  document.getElementById("totalEquipos").innerText = equipos.length;
-  document.getElementById("totalDisponibles").innerText = equipos.filter(e => e.estado === "disponible").length;
-  document.getElementById("totalAsignados").innerText = equipos.filter(e => e.estado === "asignado").length;
+    if (filtrados.length === 0) {
+      const fila = document.createElement("tr");
+      fila.className = "vacio";
+      const celda = document.createElement("td");
+      celda.colSpan = 7;
+      celda.textContent = "Sin equipos para mostrar";
+      fila.append(celda);
+      elementos.tabla.append(fila);
+      return;
+    }
 
-  tabla.innerHTML = "";
+    filtrados.forEach((equipo) => {
+      const fila = document.createElement("tr");
+      const codigo = crearCelda(equipo.codigo);
+      const codigoFuerte = document.createElement("strong");
+      codigoFuerte.textContent = equipo.codigo;
+      codigo.replaceChildren(codigoFuerte);
 
-  const filtrados = equipos.filter(eq => {
-    if (filtro !== "todos" && eq.estado !== filtro) return false;
-    if (busqueda && !eq.codigo.toLowerCase().includes(busqueda)) return false;
-    return true;
+      const estado = document.createElement("td");
+      const etiqueta = document.createElement("span");
+      etiqueta.className = `estado ${equipo.estado === "asignado" ? "asignado" : "disponible"}`;
+      etiqueta.textContent = equipo.estado === "asignado" ? "Asignado" : "Disponible";
+      estado.append(etiqueta);
+
+      const acciones = document.createElement("td");
+      const eliminar = document.createElement("button");
+      eliminar.type = "button";
+      eliminar.className = "btn-eliminar";
+      eliminar.setAttribute("aria-label", `Eliminar ${equipo.codigo}`);
+      eliminar.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
+      eliminar.addEventListener("click", () => eliminarEquipo(equipo.codigo));
+      acciones.append(eliminar);
+
+      fila.append(codigo, crearCelda(equipo.tipo), crearCelda(equipo.marca), crearCelda(equipo.modelo), estado, crearCelda(equipo.trabajador), acciones);
+      elementos.tabla.append(fila);
+    });
+  }
+
+  function eliminarEquipo(codigo) {
+    if (!window.confirm(`¿Eliminar el equipo ${codigo}?`)) return;
+    const equipos = obtenerEquipos().filter((equipo) => equipo.codigo !== codigo);
+    if (guardarEquipos(equipos)) {
+      mostrarMensaje("Equipo eliminado.", "exito");
+      mostrarEquipos();
+    }
+  }
+
+  document.querySelectorAll(".menu button").forEach((boton) => {
+    boton.addEventListener("click", () => mostrarSeccion(boton.dataset.seccion));
   });
 
-  if (filtrados.length === 0) {
-    tabla.innerHTML = "<tr class='vacio'><td colspan='7'>Sin equipos para mostrar</td></tr>";
-    return;
-  }
+  document.getElementById("formRegistrar").addEventListener("submit", (evento) => {
+    evento.preventDefault();
+    const codigo = normalizarCodigo(elementos.codigo.value);
+    const tipo = elementos.tipo.value.trim();
+    const marca = elementos.marca.value.trim();
+    const modelo = elementos.modelo.value.trim();
 
-  filtrados.forEach(eq => {
-    const fila = document.createElement("tr");
-    fila.innerHTML = `
-      <td><strong>${eq.codigo}</strong></td>
-      <td>${eq.tipo}</td>
-      <td>${eq.marca}</td>
-      <td>${eq.modelo}</td>
-      <td><span class="${eq.estado}">${eq.estado}</span></td>
-      <td>${eq.trabajador || "—"}</td>
-      <td>
-        <button class="btn-eliminar" onclick="eliminarEquipo('${eq.codigo}')">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </td>
-    `;
-    tabla.appendChild(fila);
+    if (!CODIGO_RE.test(codigo)) return mostrarMensaje("Código inválido. Usa un formato como LAP-001.", "error");
+    if (![tipo, marca, modelo].every(esTextoValido)) return mostrarMensaje("Tipo, marca y modelo contienen caracteres no permitidos.", "error");
+
+    const equipos = obtenerEquipos();
+    if (equipos.some((equipo) => equipo.codigo === codigo)) return mostrarMensaje("Ya existe un equipo con ese código.", "error");
+
+    equipos.push({ codigo, tipo, marca, modelo, estado: "disponible", trabajador: "" });
+    if (guardarEquipos(equipos)) {
+      evento.currentTarget.reset();
+      mostrarMensaje("Equipo registrado correctamente.", "exito");
+      mostrarSeccion("inventario");
+    }
   });
-}
 
-/*
+  document.getElementById("formAsignar").addEventListener("submit", (evento) => {
+    evento.preventDefault();
+    const codigo = normalizarCodigo(elementos.codigoAsignar.value);
+    const trabajador = elementos.trabajador.value.trim();
+
+    if (!CODIGO_RE.test(codigo)) return mostrarMensaje("Código inválido. Usa un formato como LAP-001.", "error");
+    if (!esTextoValido(trabajador)) return mostrarMensaje("El nombre del trabajador contiene caracteres no permitidos.", "error");
+
+    const equipos = obtenerEquipos();
+    const equipo = equipos.find((item) => item.codigo === codigo);
+    if (!equipo) return mostrarMensaje("No existe un equipo con ese código.", "error");
+    if (equipo.estado === "asignado") return mostrarMensaje(`El equipo ya está asignado a ${equipo.trabajador}.`, "error");
+
+    equipo.estado = "asignado";
+    equipo.trabajador = trabajador;
+    if (guardarEquipos(equipos)) {
+      evento.currentTarget.reset();
+      mostrarMensaje(`Equipo asignado a ${trabajador}.`, "exito");
+      mostrarSeccion("inventario");
+    }
+  });
+
+  document.getElementById("formDevolver").addEventListener("submit", (evento) => {
+    evento.preventDefault();
+    const codigo = normalizarCodigo(elementos.codigoDevolver.value);
+    if (!CODIGO_RE.test(codigo)) return mostrarMensaje("Código inválido. Usa un formato como LAP-001.", "error");
+
+    const equipos = obtenerEquipos();
+    const equipo = equipos.find((item) => item.codigo === codigo);
+    if (!equipo) return mostrarMensaje("Equipo no encontrado.", "error");
+    if (equipo.estado !== "asignado") return mostrarMensaje("Ese equipo no está asignado.", "error");
+
+    equipo.estado = "disponible";
+    equipo.trabajador = "";
+    if (guardarEquipos(equipos)) {
+      evento.currentTarget.reset();
+      mostrarMensaje("Equipo devuelto correctamente.", "exito");
+      mostrarSeccion("inventario");
+    }
+  });
+
+  elementos.buscar.addEventListener("input", mostrarEquipos);
+  elementos.filtro.addEventListener("change", mostrarEquipos);
+  mostrarEquipos();
+});
